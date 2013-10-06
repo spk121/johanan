@@ -134,3 +134,24 @@ binary speed.  This has the following effect.
 * If the bit rate is 64,000 bits/s and the input buffer is not empty, 400 bytes or all the characters in the input buffer, whichever is less, are packetized and sent. 400 bytes = 64,000 bits/s * (0.125 bytes/bit) * (0.05 seconds).
 * In the 300 baud case, 2 bytes per packet would be sent.
 * In the 110 baud case, 1 byte would be sent.
+
+
+# API
+
+joha\_channel\_t \*joha\_open (joha\_broker\_t \*broker, const char \*name, uint16\_t window\_size, joha\_packet\_size\_t psize, joha\_channel\_speed\_t speed);
+
+Open a virtual circuit between this worker and another worker. NAME is the identifier for the other worker.  Window size, packet size, and speed are requested parameters for the connection.
+
+Returns NULL on failure, setting joha\_error\_cause and joha\_error\_diagnostic.  On success, returns a new joha\_channel\_t structure.
+
+uint16\_t joha\_window\_size(joha\_channel\_t \* stream);
+
+size\_t joha\_read (void \* ptr, size\_t size, size\_t count, joha\_channel\_t \*channel );
+
+size\_t joha\_write (const void \* ptr, size\_t size, size\_t count, joha\_channel\_t \* stream);
+
+int joha\_putc (int character, joha\_channel\_t stream );
+
+int joha\_getc (joha\_channel\_t stream );
+
+joha_printf (joha_channel_t *stream, const char *format, ...);
