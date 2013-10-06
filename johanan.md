@@ -38,6 +38,7 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 
 ## Data forwarding characters
 
+
 | Value      | Description |
 |------------|------------ |
 | 0 (default) | No data forwarding characters |
@@ -57,11 +58,27 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 
 ## Binary speed
 
-| Value      | Description |
-|------------|------------ |
-| 0  | 110 bits/s    |
-| 2 (default) | 300 bits/s    |
-| 18 | 64,000 bits/s |
+The product of the binary speed and the idle timer delay determines the number of characters that appear in each data packet sent.
+
+In X.3, this is usually a read-only property of a client.
+
+| Value       | Nominal data rate | True bytes per 1/20 sec |
+|------------ |-------------- | ----------------- | 
+| 0           | 110 bits/s    | 1
+| 2 (default) | 300 bits/s    | 2
+| 3           | 1200 bits/s   | 8
+| 4           | 600 bits/s    | 4
+| 5           | 75 bits/s     | ½
+| 6           | 50 bits/s     | ⅓
+| 7           | 800 bits/s    | 5
+| 12          | 2400 bits/s   | 15
+| 13          | 4800 bits/s   | 30
+| 14          | 9600 bits/s   | 60
+| 15          | 19,200 bits/s | 120
+| 16          | 48,000 bits/s | 300
+| 17          | 56,000 bits/s | 350
+| 18          | 64,000 bits/s | 400 
+| 19          | 14,400 bits/s | 90 
 
 (I added 18 myself, because, the defaults are obsolete. )
 
@@ -73,6 +90,8 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 | 1 to 255 | Number of graphic characters |
 
 ## End of frame
+
+I'm not sure if I'm going to implement this.
 
 | Value      | Description |
 |------------|------------ |
@@ -112,6 +131,6 @@ Data in the input buffer is forwarded when of of the following occurs.
 The default parameters are 0.05 seconds, no data forwarding character, and a 64,000 bits/s
 binary speed.  This has the following effect.
 * Every 0.05 seconds, the input buffer is checked for characters.
-* If the input buffer is not empty, 400 bytes or all the characters in the input buffer, whichever is less, are packetized and sent. 400 bytes = 64,000 bits/s * (0.125 bytes/bit) * (0.05 seconds).
+* If the bit rate is 64,000 bits/s and the input buffer is not empty, 400 bytes or all the characters in the input buffer, whichever is less, are packetized and sent. 400 bytes = 64,000 bits/s * (0.125 bytes/bit) * (0.05 seconds).
 * In the 300 baud case, 2 bytes per packet would be sent.
 * In the 110 baud case, 1 byte would be sent.
