@@ -31,47 +31,64 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 
 ## Echo
 
-|---|---------|
-| 0 | no echo |
-| 1 | echo    |
+| Value      | Description |
+|------------|------------ |
+| 0 (default)| no echo     |
+| 1          | echo        |
 
 ## Data forwarding characters
 
-| 0  | No data forwarding characters |
+| Value      | Description |
+|------------|------------ |
+| 0 (default) | No data forwarding characters |
 | 1  | Alphanumeric |
 | 2  | CR           |
 | 16 | EXT, EOT     |
 | 126 | All C0 controls + DEL |
 
 ## Idle timer delay
+
+| Value      | Description |
+|------------|------------ |
 | 0   | infinite delay |
-| 1   | 0.05 second |
+| 1 (default)  | 0.05 second |
 | 20  | 1.00 second |
 | 255 | 12.75 seconds |
 
 ## Binary speed
 
+| Value      | Description |
+|------------|------------ |
 | 0  | 110 bits/s    |
-| 2  | 300 bits/s    |
+| 2 (default) | 300 bits/s    |
 | 18 | 64,000 bits/s |
 
 (I added 18 myself, because, the defaults are obsolete. )
 
 ## Size of input field
 
-| 0        | Undefined size |
+| Value      | Description |
+|------------|------------ |
+| 0 (default)| Undefined size |
 | 1 to 255 | Number of graphic characters |
 
 ## End of frame
+
+| Value      | Description |
+|------------|------------ |
 | 0  | No end-of-frame signal |
-| 32 | A frame is a complete packet sequence |
+| 32 (default) | A frame is a complete packet sequence |
 
 ## Extended data forwarding signals
 
+| Value      | Description |
+|------------|------------ |
 | 0 | No extended data forwarding |
 
 ## Display interrupt
 
+| Value      | Description |
+|------------|------------ |
 | 0 | No display interrupt |
 
 ## Diacritic character ending
@@ -80,6 +97,8 @@ Obsolete?
 
 ## Extended echo mast
 
+| Value      | Description |
+|------------|------------ |
 | 0 | No extended echo mask |
 
 ## Forwarding
