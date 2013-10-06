@@ -31,6 +31,7 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 
 ## Echo
 
+|---|---------|
 | 0 | no echo |
 | 1 | echo    |
 
