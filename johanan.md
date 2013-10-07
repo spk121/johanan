@@ -26,18 +26,77 @@ The basic functionality of a Johanan-based client will be
 
 `SBV_Establish` is a message sent by the client to connect it to the broker.  Also it is an indication sent by the broker to the client to indicate success.
 
-It may include the following optional parameters
+It shall include the following parameters
+
 | Parameter                  | Required | C->B | B->S | S->B | B->C | Function |
-| -------------------        | -------- | ---- | ---- | --- | ----| --------- |
-| `OB_Called_Address`        | yes      | X    | X    |     |     | the TCP address of the broker |
-| `OB_Application_Selection` | no       | X    | X    |     |     | the name of the desired application |
-| `OB_User_Data`             | no       | X    | X    |     |     | binary blob passed directly to server |
-| `Result`                   | yes      |      |      | X   | X   | info about connection
+| -------------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
+| `OB_Called_Address`        | yes      | X    | X    |      |      | the TCP address of the broker |
+| `OB_Application_Selection` | no       | X    | X    |      |      | the name of the desired application |
+| `OB_User_Data`             | no       | X    | X    |      |      | binary blob passed directly to server |
 
 ## `SBV_Release`
 
 `SBV_Release` is a message sent by either client or server to close the connection
-# Notes
+
+| Parameter           | Required | C->B | B->S | S->B | B->C | Function |
+| ------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
+| `IB_Cause`          | yes      |     |     |  X    |  X   | the TCP address of the broker |
+| `IB_Diagnostic`     | yes      |     |     |  X    |  X    | the name of the desired application |
+
+
+## `SBV_Reset`
+
+`SBV_Reset` is sent by the server to the client to request that it reset the connection.
+
+It has no parameters
+
+## `SBV_VTX_Data`
+
+`SBV_VTX_Data` is a packet that contains Videotex message data.
+
+It contains one field, which is `VTX_Data`
+
+## `SBV_Set_Param`
+
+`SBV_Set_Param` is sent by the server to the client to set one or more of the parameters of its packet assembler and disassembler.
+
+It has one parameter: `X3_Parameter_List`.
+
+## `SBV_Read_Param`
+
+`SBV_Read_Param` is sent by the server to the client to request information about one or more of the parameters of its packet assembler and disassembler.
+
+It has one parameter: `X3_Parameter_List`.
+
+## `SBV_Param_Ind`
+
+`SBV_Param_Ind` is sent by the client to the server in response to an `SBV_Read_Param` message.  It contains information about one or more of the parameters of its packet assembler and disassembler.
+
+It has one parameter: `X3_Parameter_List`.
+
+## `SBV_TFI`
+
+## `SBV_TC_Error`
+
+This is sent by the server to the client to inform the client that its last message was erroneous.  It has two parameters.
+
+| Parameter           | Required | C->B | B->S | S->B | B->C | Function |
+| ------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
+| `IB_Cause`          | yes      |     |     |  X    |  X   | the TCP address of the broker |
+| `IB_Diagnostic`     | yes      |     |     |  X    |  X    | the name of the desired application |
+
+## `SBV_DFK`
+
+This is sent by the server to the client to inform the client about the behavior of the function keys.  This message will inform the client of a string that it may send back to the server to inform it that a function key has been pressed.  (This string is information the client would send to the server as part of the text sent in-band as part of a `SBV_VTX_Data` message.)
+
+It has two parameters
+
+| Parameter           | Required | C->B | B->S | S->B | B->C | Function |
+| ------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
+| `Function_Keys`          | no      |     |     |  X    |  X   | a list of function keys with their associated strings |
+| `Reset_Keys`     | no      |     |     |  X    |  X    | a list of function keys to be reset |
+
+# Notes on Packet Assembly
 
 In ITU-T T.105, it makes the following definitions:
 
@@ -119,14 +178,12 @@ In X.3, this is usually a read-only property of a client.
 | 18          | 64,000 bits/s | 400 
 | 19          | 14,400 bits/s | 90 
 
-(I added 18 myself, because, the defaults are obsolete. )
-
 ## Size of input field
 
 | Value      | Description |
 |------------|------------ |
 | 0 (default)| Undefined size |
-| 1 to 255 | Number of graphic characters |
+| 1 to 255   | Number of graphic characters |
 
 ## End of frame
 
@@ -175,3 +232,10 @@ binary speed.  This has the following effect.
 * In the 110 baud case, 1 byte would be sent.
 
 
+# Mapping of Johanan messages onto Jozabad primitives
+
+`SBV_Establish` request -> Call Request
+
+`SBV_Establish` response -> Call Accepted
+
+`SBV_Release` -> 
