@@ -234,8 +234,15 @@ binary speed.  This has the following effect.
 
 # Mapping of Johanan messages onto Jozabad primitives
 
-`SBV_Establish` request -> Call Request
+With Jozabad, the most complicated operation is establishing a connection.  First a client connects to a broker, declaring its directionality.  Second, the client connects to another named worker, declaring window size, packet size, and connection speed.
 
-`SBV_Establish` response -> Call Accepted
+The Johanan method `SBV_Establish` is supposed to set up a complete connection.  It goes like this...
 
-`SBV_Release` -> 
+* On the calling client, Johanan converts the `SBV_Establish` into a `Joza_Call_Request` with a calling address, called address, window size, packet size, connection speed.  The connection speed is a read-only property of the client set at launch.  It will usually be 64,000 bits/sec or 300 bits/sec by default.  The packet size is based on a lookup table of the connection speed.  The window size is usually two seconds worth, which would be 40 for most speeds, 20 for 75 bits/sec, and 14 for 50 bits/sec.
+* The `Joza_Call_Accepted` message comes back, with updated window size, packet size, and connection speed.   Johanan splits this call accepted into an `SBV_Establish` response and `SBV_Set_Param` response to the client.  For the latter, Johanan is updating this client's packet assembly parameters to acceptable defaults for this packet size and connection speed.
+* The main loop is active at this point.
+
+The `SBV_VTX_Data` method is when the client sends data.
+* On the calling client, Johanan takes the contents of `SBV_VTX_Data` and puts it into a buffer. Every 1/20 second (or 2/20 for 75 baud or 3/20 for 50 baud) Johahan runs the data forwarding check, and if there is data to forward, it ships  `Joza_Data` message to the broker if its window is open.  If it can't send the data, and the buffer fills up, it sends a `SBV_TC_Error` back to the client.
+* On the calling client, if a `Joza_Data` message is received, its contents are put into a buffer.  A `Joza_RR` message is sent in response if the buffer has empty space for an entire window's worth of data.  Every 1/20 seconds (or less for 75 bps or 50bps) Johanan does the data forwarding check and if there is data, it sends `SBV_VTX_Data` to the client.
+
