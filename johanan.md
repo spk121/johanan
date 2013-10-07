@@ -1,3 +1,42 @@
+# API
+
+Johanan is a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223.
+
+The basic functionality of a Johanan-based client will be
+* The client sends an `SBV_Establish` to a server
+* The server may query and/or set packet assembly parameters on the client
+* The server may set function key definitions for the client
+* The client and server exchange `SBV_VTX_DATA` packets
+* One side disconnects with a `SBV_Release` request
+
+| Service                | Confirmed | Client/Server | Function |
+| ---------------------- | --------- | ------------- | -------- |
+| `SBV_Establish`        | yes       | Client | Connection establishment |
+| `SBV_Release`          | no        | Both   | Connection release |
+| `SBV_Reset`            | yes       | Server | Reset to basic state |
+| `SBV_VTX_DATA`         | no        | Both   | Videotex data packets |
+| `SBV_Set_Param`        | no        | Server | Set packet assembly parameters |
+| `SBV_Read_Param`       | no        | Server | Request packet assembly parameters |
+| `SBV_Param_Indication` | no        | Client | Send packet assembly parameters |
+| `SBV_TFI`              | yes       | Server | Terminal facility indicator |
+| `SBV_TC_Error`         | no        | Both   | Error indication |
+| `SBV_DFK`              | no        | Server | Definition of function keys |
+
+## `SBV_Establish`
+
+`SBV_Establish` is a message sent by the client to connect it to the broker.  Also it is an indication sent by the broker to the client to indicate success.
+
+It may include the following optional parameters
+| Parameter                  | Required | C->B | B->S | S->B | B->C | Function |
+| -------------------        | -------- | ---- | ---- | --- | ----| --------- |
+| `OB_Called_Address`        | yes      | X    | X    |     |     | the TCP address of the broker |
+| `OB_Application_Selection` | no       | X    | X    |     |     | the name of the desired application |
+| `OB_User_Data`             | no       | X    | X    |     |     | binary blob passed directly to server |
+| `Result`                   | yes      |      |      | X   | X   | info about connection
+
+## `SBV_Release`
+
+`SBV_Release` is a message sent by either client or server to close the connection
 # Notes
 
 In ITU-T T.105, it makes the following definitions:
@@ -136,22 +175,3 @@ binary speed.  This has the following effect.
 * In the 110 baud case, 1 byte would be sent.
 
 
-# API
-
-joha\_channel\_t \*joha\_open (joha\_broker\_t \*broker, const char \*name, uint16\_t window\_size, joha\_packet\_size\_t psize, joha\_channel\_speed\_t speed);
-
-Open a virtual circuit between this worker and another worker. NAME is the identifier for the other worker.  Window size, packet size, and speed are requested parameters for the connection.
-
-Returns NULL on failure, setting joha\_error\_cause and joha\_error\_diagnostic.  On success, returns a new joha\_channel\_t structure.
-
-uint16\_t joha\_window\_size(joha\_channel\_t \* stream);
-
-size\_t joha\_read (void \* ptr, size\_t size, size\_t count, joha\_channel\_t \*channel );
-
-size\_t joha\_write (const void \* ptr, size\_t size, size\_t count, joha\_channel\_t \* stream);
-
-int joha\_putc (int character, joha\_channel\_t stream );
-
-int joha\_getc (joha\_channel\_t stream );
-
-joha_printf (joha_channel_t *stream, const char *format, ...);
