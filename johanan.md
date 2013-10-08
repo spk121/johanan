@@ -47,6 +47,26 @@ It shall include the following parameters
 
 T.105 says that `IB_Called_Address` is either the address of the Videotex Application to be reached iin which case it is interpreted by teh Access Function (the server) or it represents a network address used by the Access Network (the broker) to identify the called side.
 
+This is mapped onto the BIS-N-CONNECT primitive as the Called Address.  The format for the Called Address is described in X.25. X.25 address can be one of many different formats.
+
+T.105 says that `IB_Application_Address` is complementary information about the Videotex Application to be reached; this may include a network address; it is interpreted by the Access Function (the server).
+
+T.105 says that it is Basic Coding Structure #9.  BCS is (a) 4-bit type indicator, length from 0 to 127, and a vector of octets.  T.105 recommends that `IB_Application_Address` be X.121, which is an all numeric address format.
+
+This is mapped onto the BIS-N-CONNECT's User Data field.
+
+T.105 says that `IB_Application_Selection` is a mnemonic about the Videotex Application to be reached; it is interpreted by teh Access Function (the server).
+
+T.105 says that it is Basic Coding Structure #10, and that is format and value are not defined.
+
+This is mapped onto the BIS-N-CONNECT's User Data field.
+
+T.105 says that `IB_Application_Data` is data to be passed transparently to the server.
+
+T.105 says that it is Basic Coding Structure #11, and that is format and value are not defined.
+
+This is mapped onto the BIS-N-CONNECT's User Data field.
+
 
 ## `SBV_Release`
 
@@ -57,10 +77,16 @@ T.105 says that `IB_Called_Address` is either the address of the Videotex Applic
 | `IB_Cause`          | yes      |     |     |  X    |  X   | the TCP address of the broker |
 | `IB_Diagnostic`     | yes      |     |     |  X    |  X    | the name of the desired application |
 
+T.105 says that `IB_Cause` is mapped onto the BIS-N-DISCONNECT's Originator field.
+
+T.105 says that `IB_Diagnostic` is mapped onto the BIS-N-DISCONNECT's Reason field.
+
 
 ## `SBV_Reset`
 
 `SBV_Reset` is sent by the server to the client to request that it reset the connection.
+
+T.105 suggests that BIS-N-RESET has Originator and Reason fields (aka Cause and Diagnostic) and that they are ignored.
 
 It has no parameters
 
@@ -70,11 +96,15 @@ It has no parameters
 
 It contains one field, which is `VTX_Data`
 
+T.105 suggests that it maps to a `BIS-N-DATA` message with `VTX_Data` as the `BIS-user-data` field.
+
 ## `SBV_Set_Param`
 
 `SBV_Set_Param` is sent by the server to the client to set one or more of the parameters of its packet assembler and disassembler.
 
 It has one parameter: `X3_Parameter_List`.
+
+T.105 suggests that it maps to a `BIS-N-Q-DATA` message wwith the `BIS-user-data` containing the parameter list.  The parameter list is in `X.3_Parameter_List` format as described in X.29.
 
 ## `SBV_Read_Param`
 
@@ -82,11 +112,15 @@ It has one parameter: `X3_Parameter_List`.
 
 It has one parameter: `X3_Parameter_List`.
 
+T.105 suggests that it maps to a `BIS-N-Q-DATA` message wwith the `BIS-user-data` containing the parameter list.  The parameter list is in `X.3_Parameter_List` format as described in X.29.
+
 ## `SBV_Param_Ind`
 
 `SBV_Param_Ind` is sent by the client to the server in response to an `SBV_Read_Param` message.  It contains information about one or more of the parameters of its packet assembler and disassembler.
 
 It has one parameter: `X3_Parameter_List`.
+
+T.105 suggests that it maps to a `BIS-N-Q-DATA` message wwith the `BIS-user-data` containing the parameter list.  The parameter list is in `X.3_Parameter_List` format as described in X.29.
 
 ## `SBV_TFI`
 
