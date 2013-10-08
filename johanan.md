@@ -24,15 +24,22 @@ The basic functionality of a Johanan-based client will be
 
 ## `SBV_Establish`
 
-`SBV_Establish` is a message sent by the client to connect it to the broker.  Also it is an indication sent by the broker to the client to indicate success.
+`SBV_Establish` is a message sent from client to server. 
 
 It shall include the following parameters
 
-| Parameter                  | Required | C->B | B->S | S->B | B->C | Function |
-| -------------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
-| `OB_Called_Address`        | yes      | X    | X    |      |      | the TCP address of the broker |
-| `OB_Application_Selection` | no       | X    | X    |      |      | the name of the desired application |
-| `OB_User_Data`             | no       | X    | X    |      |      | binary blob passed directly to server |
+| Parameter                  | Format |  Function |
+| -------------------------- | -------| --------- |
+| `OB_Called_Address`        | Called Party Number| the network address of the broker to be reached |
+| `OB_Application_Selection` | string | the mnemonic of the a Videotex Application on the broker |
+| `OB_User_Data`             | free   | binary data passed transparently to the broker |
+| `IB_Called_Address`        | Called DTE Address | the address of the server | 
+| `IB_Application_Selection` | string | the mnemonic of the a Videotex Application on the server |
+| `IB_User_Data`             | free | binary data passed transparently to the server |
+
+The `OB_Called_Address` will get packed into a `Joza_Setup` message that connects to the broker.
+
+The `IB_Called_Address` will get packed into a `Joza_Call_Request` message
 
 ## `SBV_Release`
 
@@ -215,6 +222,51 @@ Obsolete?
 | Value      | Description |
 |------------|------------ |
 | 0 | No extended echo mask |
+
+# Formats
+
+## Called Party Number
+
+ETSI 300 079 says `OB_Called_Address` maps to  *Called Party Number*
+
+ETS 300 102-1 4.5.8 describes the format of a *Called Party Number*
+
+The max length of a Called Party Number sub-message is 23 bytes.
+
+| Byte | Bits |Value |
+| ----- | ----- |
+| 1    | 1 - 7 | Called party number information element identifier = 112
+| 1   | 8       | 0 |
+| 2    | 1 - 8 | Length of called party number contents |
+| 3    | 1 - 4 | Numbering plan identification | 
+| 3    | 5 - 7 | Type of number | 
+| 3    | 8     | 1 |
+| 4+   | 8    | ISO 646 characters |
+
+Numering plan identification is an enumerated type
+
+| Value | Description |
+| ------ | ------- |
+| 0 | unknown |
+| 1 | ISDN/Telephony numbering plan (E.164)
+| 3 | Data numbering plan (X.121)
+| 4 | telex numbering plan (F.79)
+| 8 | national standard numbering plan
+| 9 | private numbering plan
+| 15 | reserved for extension
+
+Type of number is an enumerated type
+
+| Value | Description |
+| ----- | ----- |
+| 0 | unknown
+| 1 | international number
+| 2 | national number
+| 3 | networke specific number
+| 4 | subscriber number
+| 6 | abbreviated number
+| 7 | reserved for extension
+
 
 ## Forwarding
 
