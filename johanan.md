@@ -227,21 +227,21 @@ Obsolete?
 
 ## Called Party Number
 
-ETSI 300 079 says `OB_Called_Address` maps to  *Called Party Number*
+ETS 300 079 says `OB_Called_Address` maps to  *Called Party Number*
 
 ETS 300 102-1 4.5.8 describes the format of a *Called Party Number*
 
 The max length of a Called Party Number sub-message is 23 bytes.
 
-| Byte | Bits |Value |
-| ----- | ----- |
-| 1    | 1 - 7 | Called party number information element identifier = 112
-| 1   | 8       | 0 |
+| Byte | Bits | Value |
+| ---- | ---- | ------- |
+| 1    | 1 - 7 | Called party number information element identifier = 112 |
+| 1    | 8     | 0 |
 | 2    | 1 - 8 | Length of called party number contents |
 | 3    | 1 - 4 | Numbering plan identification | 
 | 3    | 5 - 7 | Type of number | 
 | 3    | 8     | 1 |
-| 4+   | 8    | ISO 646 characters |
+| 4+   | 1 - 8 | ISO 646 characters |
 
 Numering plan identification is an enumerated type
 
@@ -267,6 +267,17 @@ Type of number is an enumerated type
 | 6 | abbreviated number
 | 7 | reserved for extension
 
+This is all obsolete and not worth implementing.
+
+## Called DTE Address
+
+ETS 300 079 says `IB_Called_Address` maps to  *Called DTE Address*
+
+ISO 8208 §12.2.1.1.3 supposedly describes the format of a *Called DTE Address*, but, I couldn't find a copy of ISO 8208.  It is supposed to be similar to X.25.
+
+X.25 §5.2.1.1 describes a super-complicated meta-format that covers a dozen or so different obsolete address formats.
+
+Not worth implementing.
 
 ## Forwarding
 
