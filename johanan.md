@@ -1,3 +1,11 @@
+# Terms
+
+*out-band* - anything with no analog in X.29.  For us, *out-band* is anything beyond connection between a client and server.
+
+*in-band* - anything with an analog in X.29: creating a virtual circuit between a client and server.
+
+
+
 # API
 
 Johanan is a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223.
@@ -37,9 +45,8 @@ It shall include the following parameters
 | `IB_Application_Selection` | string | the mnemonic of the a Videotex Application on the server |
 | `IB_User_Data`             | free | binary data passed transparently to the server |
 
-The `OB_Called_Address` will get packed into a `Joza_Setup` message that connects to the broker.
+T.105 says that `IB_Called_Address` is either the address of the Videotex Application to be reached iin which case it is interpreted by teh Access Function (the server) or it represents a network address used by the Access Network (the broker) to identify the called side.
 
-The `IB_Called_Address` will get packed into a `Joza_Call_Request` message
 
 ## `SBV_Release`
 
