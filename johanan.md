@@ -286,13 +286,14 @@ EXAMPLE: Key 1 with the user visible name “F1” and the code string
 | "e"  | code sequence fourth letter is "e" |
 | "2"  | code sequence fifth letter is "2" |
 
-# Forwarding
+# Forwarding example
 
 Data in the input buffer is forwarded when of of the following occurs.
 * a X.29 PAD (metadata) message is received;
 * when the X.3 timer expires, as described in parameter 4;
 * when the X.3 standard forwarding condition is received as described in parameter 3;
-* when the X.3 extended data forwarding signal is received.
+* When the input buffer contains as many bytes as is listed in parameter 23;
+* When a function key is pressed that does not have the "Do Not Forward" property set.
 
 The default parameters are 0.05 seconds, no data forwarding character, and a 64,000 bits/s
 binary speed.  This has the following effect.
