@@ -34,8 +34,8 @@ Basic Jozabad workflows are tailored for this case. The basic functionality of a
 | `SBV_TFI` request      | `DATA` (Q=4) | yes       | Server | Terminal facility indicator |
 | `SBV_TFI` indication   | `DATA` (Q=5) | ...       | Server | Terminal facility indicator |
 | `SBV_TC_Error`         | `DATA` (Q=6) | no        | Both   | Error indication |
-| `SBV_Define_Function_keys` | DATA (Q=7) | no        | Server | Definition of function keys |
-| `SBV_Reset_Function_keys` | DATA (Q=8) | no        | Server | Clearing the definition of function keys |
+| `SBV_Define_Function_Keys` | DATA (Q=7) | no        | Server | Definition of function keys |
+| `SBV_Reset_Function_Keys` | DATA (Q=8) | no        | Server | Clearing the definition of function keys |
 
 ## `SBV_Establish`
 
@@ -71,17 +71,21 @@ This is as described in T.105.
 
 # Notes on Packet Assembly
 
+Packet assembly is mostly inspired by ITU X.3 and ITU-T T.105.
+
 In ITU-T T.105, it makes the following definitions:
 
 The *input buffer* receives the user input, and which may be used in parallel with the echo handler.
 
 The *output buffer* receives display data from received data packets and from the echo handler.
 
+Through `SBV_Set_Param` messages, a server may tell a client when to send messages from its input buffer.  The contents of the input buffer may be sent at regular intervals or when a specific character occurs.
+
 The *echo handler* control the echoplex procedure.
 
-In the state ECHO_ACTIVE, all user input shall be echoed immediately on a character-by-character basis.
+The server may also tell the client if client input is supposed to be echoed automatically to the client output.
 
-If parameter 24 is set, end-of-frame toggles echoing.
+In the state ECHO_ACTIVE, all user input shall be echoed immediately on a character-by-character basis, except for function keys.
 
 In ITU-T T.105, it suggest that the following X.3 parameters be used
 
@@ -91,24 +95,24 @@ In ITU-T T.105, it suggest that the following X.3 parameters be used
 | 3 (mandatory)  | Data forwarding    | default + 1, 16  | 0       |
 | 4 (mandatory)  | Idle timer delay   | default + 1      | 1       |
 | 11 (mandatory) | Binary speed       |  default         |         |
-| 23 (optional)  | Size of input field | default         | 0       |
-| 24 (optional)  | End of frame       | default          | 32      |
-| 25 (optional)  | Extended data forwarding signals | default | 0  |
-| 26 (optional)  | Display interrupt  | default          | 0       |
-| 28 (optional)  | Diacritic character editing | default | 0       |
-| 29 (optional)  | Extended echo mast | default          | 0       |
+| 23             | Size of input field | all             | 0       |
+| 29 (optional)  | Extended echo mask | default          | 0       |
 
 If you combine the above table with the minimum requirements in X.3, you end up with the following list.
 
 ## Echo
+
+When echo is enabled all characters except those in the extended echo mask are echoed from the input buffer to the output buffer.
 
 | Value      | Description |
 |------------|------------ |
 | 0 (default)| no echo     |
 | 1          | echo        |
 
+
 ## Data forwarding characters
 
+When data forwarding characters are set, a packet is sent immediately once of the indicated characters is encountered.
 
 | Value      | Description |
 |------------|------------ |
@@ -120,6 +124,8 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 
 ## Idle timer delay
 
+When the idle timer delay is set, a packet is sent at regular intervals if a character is ready.
+
 | Value      | Description |
 |------------|------------ |
 | 0   | infinite delay |
@@ -129,7 +135,7 @@ If you combine the above table with the minimum requirements in X.3, you end up 
 
 ## Binary speed
 
-The product of the binary speed and the idle timer delay determines the number of characters that appear in each data packet sent.
+The product of the binary speed and the idle timer delay determines the number of characters that appear in each data packet sent for those packets that are sent as a consequence of the idle timer.
 
 In X.3, this is usually a read-only property of a client.
 
@@ -153,43 +159,129 @@ In X.3, this is usually a read-only property of a client.
 
 ## Size of input field
 
+The input field, when set, indicates that a packet is sent once it contains the indicated number of characters.
+
 | Value      | Description |
 |------------|------------ |
 | 0 (default)| Undefined size |
 | 1 to 255   | Number of graphic characters |
 
-## End of frame
 
-I'm not sure if I'm going to implement this.
+## Extended echo mask
 
-| Value      | Description |
-|------------|------------ |
-| 0  | No end-of-frame signal |
-| 32 (default) | A frame is a complete packet sequence |
-
-## Extended data forwarding signals
-
-| Value      | Description |
-|------------|------------ |
-| 0 | No extended data forwarding |
-
-## Display interrupt
-
-| Value      | Description |
-|------------|------------ |
-| 0 | No display interrupt |
-
-## Diacritic character ending
-
-Obsolete?
-
-## Extended echo mast
+This is a bitfield that describes the characters that are note echoed from the input buffer to the output buffer when echoing is enabled.
 
 | Value      | Description |
 |------------|------------ |
 | 0 | No extended echo mask |
+| 1 | No echo of CR |
+| 2 | No echo of LF |
+| 4 | No echo of VT, HT, FF |
+| 8 | No echo of BEL, BS |
+| 16 | No echo of ESC, ENQ |
+| 32 | No echo of ACK, NAK, STX, SOH, EOT, ETB, ETX |
+| 64 | (n/a) |
+| 128 | No echo of remaining C1 controls and DEL |
 
-# Formats
+# Data Formats
+
+## Coding of the X.3 Parameter List
+
+When a `DATA` packet contains an X.3 parameter list, it is 2 to 12 bytes.  Each pair of bytes is an X.3 parameter.  The first byte is the parameter ID: 2 = Echo, 3 = Data Forwarding, 4 = Idle Timer Delay, etc.  The second byte in the pair is the value for the parameter as described above.
+
+## Coding of the Define Function Keys parameter
+
+Quoting and adapting from T.105
+
+The Define Function Keys parameter is a structured data type. It carries a list of function key definitions. Each
+function key consists of an identification, an optional user visible name, an optional code sequence and an optional
+“do-not-forward” indication.
+
+This table defines the coding of the type indicators
+| Type indicator | Data element |
+| -------------- | ------------- |
+| 0x60           | Function key |
+| 0x61           | Identification |
+| 0x62           | User-visible name |
+| 0x63           | Code sequence |
+| 0x64           | Do not forward |
+
+The user visible name may be used by the client to inform the user about the purpose of a function key. The
+code sequence is a sequence of octets which has to be sent to the server when the function key is depressed.
+
+By default, the function key shall be associated with a forwarding condition (causing an input data packet to be sent immediately once a function key is pressed. The presence of a do-not-forward indication defines that the function key shall not be associated with a forwarding condition.
+
+The client shall process the conditions in the received order. If the server sends an erroneous message that sets a specific function key twice in one command, the value of the last received definition shall be used.
+
+The list of function keys is coded as a structure. Each element of this structure is coded in a TLV (type-length-value)
+form.
+
+The identification is coded as an integer. For clients supporting the soft function keys service, at least values 1 to 8 shall be supported. The user visible name shall be encoded as a string of the indicated length. The code sequence shall be encoded as a sequence of octets of the indicated length. The values of these octets are not limited to a specific data syntax. 
+
+The do-not-forward indication shall be encoded as a void type.
+
+The following formal specification gives the syntax of the Function_Keys data-structure:
+```
+Function_Keys ::= Function_Key_List
+Function_Key_List ::= Function_Key Function_Key_List 
+                      | /* empty */ 
+Function_Key ::= 0x60 Length Identification
+                      User_visible_name
+                      Code_sequence
+                      Do_not_forward
+Identification ::= 0x61 Length Integer
+User_visible_name ::= 0x62 Length String
+                  | /* empty */ 
+Code_sequence ::= 0x63 Length Octet_sequence
+              | /* empty */ 
+Do_not_forward ::= 0x64 0x00
+              | /* empty */
+Length ::= 1-byte unsigned integer
+Integer ::= 1-byte unsigned integer
+String ::= ASCII-encoded string of 255 bytes or less
+Octet_sequence ::= list of 8-bit unsigned integers of 255 bytes or less
+```
+
+The following example illustrate the use of the define funciton key service, showing the complete coding for a function key.
+
+EXAMPLE: Key 1 with the user visible name “F1” and the code string
+“Code1”, and key 10 with the user visible name “F10” and the code sequence “Code2”.
+
+| code | meaning |
+| ----- | ------ |
+| 0x60 | function key begins |
+| 0x0E | length = 14 |
+| 0x61 | identification begins |
+| 0x01 | identification length = 1 |
+| 0x01 | function key #1 |
+| 0x62 | function key name begins |
+| 0x02 | function key name length = 2 |
+| "F"  | first letter is "F" |
+| "1"  | second letter is "1" |
+| 0x63 | function key code sequence begins |
+| 0x05 | function key code length = 5 |
+| "C"  | function key code first letter is "C" |
+| "o"  | function key code second letter is "o" |
+| "d"  | function key code third letter is "d" |
+| "e"  | function key code fourth letter is "e" |
+| "1"  | function key code fifth letter is "1" |
+| 0x60 | function key begins |
+| 0x0E | length = 15 |
+| 0x61 | identification begins |
+| 0x01 | identification length = 1 |
+| 0x0A | function key #10 |
+| 0x62 | function key name begin |
+| 0x03 | length = 3 |
+| "F"  | first letter is "F" |
+| "1"  | second letter is "1" |
+| "0"  | third letter is "0" |
+| 0x63 | function key code sequence begins |
+| 0x05 | code sequence length = 5 |
+| "C"  | code sequence first letter is "C" |
+| "o"  | code sequence second letter is "o" |
+| "d"  | code sequence third letter is "d" |
+| "e"  | code sequence fourth letter is "e" |
+| "2"  | code sequence fifth letter is "2" |
 
 ## Called Party Number
 
