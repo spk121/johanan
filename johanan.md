@@ -8,141 +8,66 @@
 
 # API
 
-Johanan is a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223.
+Johanan is a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223 or ITU T.105.
 
-The basic functionality of a Johanan-based client will be
+Clients and servers will register themselves with the broker using the Jozabad `CONNECT` messages.
+
+Basic Jozabad workflows are tailored for this case. The basic functionality of a Johanan-based client will be
 * The client sends an `SBV_Establish` to a server
+* The server will respond with an `SBV_Establish` indication.
 * The server may query and/or set packet assembly parameters on the client
 * The server may set function key definitions for the client
 * The client and server exchange `SBV_VTX_DATA` packets
 * One side disconnects with a `SBV_Release` request
 
-| Service                | Confirmed | Client/Server | Function |
-| ---------------------- | --------- | ------------- | -------- |
-| `SBV_Establish`        | yes       | Client | Connection establishment |
-| `SBV_Release`          | no        | Both   | Connection release |
-| `SBV_Reset`            | yes       | Server | Reset to basic state |
-| `SBV_VTX_DATA`         | no        | Both   | Videotex data packets |
-| `SBV_Set_Param`        | no        | Server | Set packet assembly parameters |
-| `SBV_Read_Param`       | no        | Server | Request packet assembly parameters |
-| `SBV_Param_Indication` | no        | Client | Send packet assembly parameters |
-| `SBV_TFI`              | yes       | Server | Terminal facility indicator |
-| `SBV_TC_Error`         | no        | Both   | Error indication |
-| `SBV_DFK`              | no        | Server | Definition of function keys |
+| Service                | Jozabad Msg  | Confirmed | Client/Server | Function |
+| ---------------------- | ------------ | ----------| ------------- | -------- |
+| `SBV_Establish` request       | `CALL_REQUEST`  | yes       | Client        | Connection establishment |
+| `SBV_Establish` indication    | `CALL_ACCEPTED` | ...        | Client        | Connection establishment |
+| `SBV_Release`          | `CLEAR_REQUEST` | no        | Both   | Connection release |
+| `SBV_Reset` request    | `RESET_REQUEST` | yes       | Server | Reset to basic state |
+| `SBV_Reset` indication | `RESET_CONFIRMATION` | ...       | Server | Reset to basic state |
+| `SBV_VTX_DATA`         | `DATA` (Q=0)      | no        | Both   | Videotex data packets |
+| `SBV_Set_Param`        | `DATA` (Q=1)      | no        | Server | Set packet assembly parameters |
+| `SBV_Read_Param` request | `DATA` (Q=2)    | yes        | Server | Request packet assembly parameters |
+| `SBV_Read_Param` indication | `DATA` (Q=3) | ...        | Client | Send packet assembly parameters |
+| `SBV_TFI` request      | `DATA` (Q=4) | yes       | Server | Terminal facility indicator |
+| `SBV_TFI` indication   | `DATA` (Q=5) | ...       | Server | Terminal facility indicator |
+| `SBV_TC_Error`         | `DATA` (Q=6) | no        | Both   | Error indication |
+| `SBV_Define_Function_keys` | DATA (Q=7) | no        | Server | Definition of function keys |
+| `SBV_Reset_Function_keys` | DATA (Q=8) | no        | Server | Clearing the definition of function keys |
 
 ## `SBV_Establish`
 
-`SBV_Establish` is a message sent from client to server. 
-
-It shall include the following parameters
-
-| Parameter                  | Format |  Function |
-| -------------------------- | -------| --------- |
-| `OB_Called_Address`        | Called Party Number| the network address of the broker to be reached |
-| `OB_Application_Selection` | string | the mnemonic of the a Videotex Application on the broker |
-| `OB_User_Data`             | free   | binary data passed transparently to the broker |
-| `IB_Called_Address`        | Called DTE Address | the address of the server | 
-| `IB_Application_Selection` | string | the mnemonic of the a Videotex Application on the server |
-| `IB_User_Data`             | free | binary data passed transparently to the server |
-
-T.105 says that `IB_Called_Address` is either the address of the Videotex Application to be reached iin which case it is interpreted by teh Access Function (the server) or it represents a network address used by the Access Network (the broker) to identify the called side.
-
-This is mapped onto the BIS-N-CONNECT primitive as the Called Address.  The format for the Called Address is described in X.25. X.25 address can be one of many different formats.
-
-T.105 says that `IB_Application_Address` is complementary information about the Videotex Application to be reached; this may include a network address; it is interpreted by the Access Function (the server).
-
-T.105 says that it is Basic Coding Structure #9.  BCS is (a) 4-bit type indicator, length from 0 to 127, and a vector of octets.  T.105 recommends that `IB_Application_Address` be X.121, which is an all numeric address format.
-
-This is mapped onto the BIS-N-CONNECT's User Data field.
-
-T.105 says that `IB_Application_Selection` is a mnemonic about the Videotex Application to be reached; it is interpreted by teh Access Function (the server).
-
-T.105 says that it is Basic Coding Structure #10, and that is format and value are not defined.
-
-This is mapped onto the BIS-N-CONNECT's User Data field.
-
-T.105 says that `IB_Application_Data` is data to be passed transparently to the server.
-
-T.105 says that it is Basic Coding Structure #11, and that is format and value are not defined.
-
-This is mapped onto the BIS-N-CONNECT's User Data field.
-
+Same as Jozabad `CALL_REQUEST` and `CALL_ACCEPTED`
 
 ## `SBV_Release`
 
-`SBV_Release` is a message sent by either client or server to close the connection
-
-| Parameter           | Required | C->B | B->S | S->B | B->C | Function |
-| ------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
-| `IB_Cause`          | yes      |     |     |  X    |  X   | the TCP address of the broker |
-| `IB_Diagnostic`     | yes      |     |     |  X    |  X    | the name of the desired application |
-
-T.105 says that `IB_Cause` is mapped onto the BIS-N-DISCONNECT's Originator field.
-
-T.105 says that `IB_Diagnostic` is mapped onto the BIS-N-DISCONNECT's Reason field.
-
+Same as Jozabad `CLEAR_REQUEST` with the caveat that `CLEAR_CONFIRMATION` messages are ignored.
 
 ## `SBV_Reset`
 
-`SBV_Reset` is sent by the server to the client to request that it reset the connection.
-
-T.105 suggests that BIS-N-RESET has Originator and Reason fields (aka Cause and Diagnostic) and that they are ignored.
-
-It has no parameters
+Same as Jozabad `RESET_REQUEST` and `RESET_CONFIRMATION`
 
 ## `SBV_VTX_Data`
 
-`SBV_VTX_Data` is a packet that contains Videotex message data.
+Send in a Jozabad `DATA` message with `Q` = 0.
 
-It contains one field, which is `VTX_Data`
+## `SBV_Set_Param`, `SBV_Read_Param` request, `SBV_Read_Param` indication
 
-T.105 suggests that it maps to a `BIS-N-DATA` message with `VTX_Data` as the `BIS-user-data` field.
+Send in a Jozabad `DATA` message with `Q` = 1, 2 or 3 respectively.
 
-## `SBV_Set_Param`
+The payload contains an X.3 Parameter list: one or more PAD parameter ID / value pairs.
 
-`SBV_Set_Param` is sent by the server to the client to set one or more of the parameters of its packet assembler and disassembler.
+In the `SBV_Read_Param` case, the value part of the pair is ignored.
 
-It has one parameter: `X3_Parameter_List`.
+The parameter list is in `X.3_Parameter_List` format as described in X.29.
 
-T.105 suggests that it maps to a `BIS-N-Q-DATA` message wwith the `BIS-user-data` containing the parameter list.  The parameter list is in `X.3_Parameter_List` format as described in X.29.
-
-## `SBV_Read_Param`
-
-`SBV_Read_Param` is sent by the server to the client to request information about one or more of the parameters of its packet assembler and disassembler.
-
-It has one parameter: `X3_Parameter_List`.
-
-T.105 suggests that it maps to a `BIS-N-Q-DATA` message wwith the `BIS-user-data` containing the parameter list.  The parameter list is in `X.3_Parameter_List` format as described in X.29.
-
-## `SBV_Param_Ind`
-
-`SBV_Param_Ind` is sent by the client to the server in response to an `SBV_Read_Param` message.  It contains information about one or more of the parameters of its packet assembler and disassembler.
-
-It has one parameter: `X3_Parameter_List`.
-
-T.105 suggests that it maps to a `BIS-N-Q-DATA` message wwith the `BIS-user-data` containing the parameter list.  The parameter list is in `X.3_Parameter_List` format as described in X.29.
-
-## `SBV_TFI`
-
-## `SBV_TC_Error`
-
-This is sent by the server to the client to inform the client that its last message was erroneous.  It has two parameters.
-
-| Parameter           | Required | C->B | B->S | S->B | B->C | Function |
-| ------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
-| `IB_Cause`          | yes      |     |     |  X    |  X   | the TCP address of the broker |
-| `IB_Diagnostic`     | yes      |     |     |  X    |  X    | the name of the desired application |
-
-## `SBV_DFK`
+## `SBV_Define_Function_Keys`, `SBV_Reset_Function_Keys`
 
 This is sent by the server to the client to inform the client about the behavior of the function keys.  This message will inform the client of a string that it may send back to the server to inform it that a function key has been pressed.  (This string is information the client would send to the server as part of the text sent in-band as part of a `SBV_VTX_Data` message.)
 
-It has two parameters
-
-| Parameter           | Required | C->B | B->S | S->B | B->C | Function |
-| ------------------- | -------- | ---- | ---- | ---- | ---- |--------- |
-| `Function_Keys`          | no      |     |     |  X    |  X   | a list of function keys with their associated strings |
-| `Reset_Keys`     | no      |     |     |  X    |  X    | a list of function keys to be reset |
+This is as described in T.105.
 
 # Notes on Packet Assembly
 
