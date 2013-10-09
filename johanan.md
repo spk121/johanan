@@ -1,6 +1,21 @@
+# Operation
+
+Johanan's job is basically to convert a set of input and output buffers into a network protocol.  Client application appends data to an input buffer, and Johanan drains data and sends it out over the wire.  Also, Johanan receives data from the wire and puts it into an input buffer, notifying client that there is data to be read (via a semaphore? or a signal? or file descriptor?)
+
+Of course, before one can start sending and receiving data from a server, one needs to connect to a server via a broker.
+
+Johanan does some other things.  If the server wants the client's input to echo, Johanan handles echoing.  If the server wants the function keys to work, Johanan converts function key presses into multi-byte key codes.
+
+Johanan also does some fairly strict throttling of data transmission.  Data sent over the wire will be chopped into packets based on the parameters of the Packet Assembler.  Also, data received from the wire will be buffered, chopped and sent to the client at a throttled rate.
+
+Typically
+* The client chooses the bits per second rate at which it will send and receive data
+* The server chooses whether it will abide by that rate by sending and receiving small packets at regular intervals or larger packets at irregular intervals.  This is controlled by the Packet Assembler parameters.
+* Packets can come as infrequently as every 12.75 seconds, so the largest possible packet is 12.75 times the data rate.
+
 # API
 
-Johanan is a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223 or ITU T.105.
+Johanan uses a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223 or ITU T.105.
 
 Clients and servers will register themselves with the broker using the Jozabad `CONNECT` messages.
 
