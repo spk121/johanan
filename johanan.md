@@ -198,6 +198,7 @@ function key consists of an identification, an optional user visible name, an op
 “do-not-forward” indication.
 
 This table defines the coding of the type indicators
+
 | Type indicator | Data element |
 | -------------- | ------------- |
 | 0x60           | Function key |
@@ -247,8 +248,8 @@ The following example illustrate the use of the define funciton key service, sho
 EXAMPLE: Key 1 with the user visible name “F1” and the code string
 “Code1”, and key 10 with the user visible name “F10” and the code sequence “Code2”.
 
-| code | meaning |
-| ----- | ------ |
+| Code | Meaning |
+|-----|------|
 | 0x60 | function key begins |
 | 0x0E | length = 14 |
 | 0x61 | identification begins |
