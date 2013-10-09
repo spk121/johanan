@@ -1,11 +1,3 @@
-# Terms
-
-*out-band* - anything with no analog in X.29.  For us, *out-band* is anything beyond connection between a client and server.
-
-*in-band* - anything with an analog in X.29: creating a virtual circuit between a client and server.
-
-
-
 # API
 
 Johanan is a client/server messaging scheme that it built on top of Jozabad primitives.  This messaging is similar to that described in ETS 300 223 or ITU T.105.
@@ -34,8 +26,8 @@ Basic Jozabad workflows are tailored for this case. The basic functionality of a
 | `SBV_TFI` request      | `DATA` (Q=4) | yes       | Server | Terminal facility indicator |
 | `SBV_TFI` indication   | `DATA` (Q=5) | ...       | Server | Terminal facility indicator |
 | `SBV_TC_Error`         | `DATA` (Q=6) | no        | Both   | Error indication |
-| `SBV_Define_Function_Keys` | DATA (Q=7) | no        | Server | Definition of function keys |
-| `SBV_Reset_Function_Keys` | DATA (Q=8) | no        | Server | Clearing the definition of function keys |
+| `SBV_Define_Function_Keys` | `DATA` (Q=7) | no        | Server | Definition of function keys |
+| `SBV_Reset_Function_Keys` | `DATA` (Q=8) | no        | Server | Clearing the definition of function keys |
 
 ## `SBV_Establish`
 
